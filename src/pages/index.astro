@@ -1,0 +1,26 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProfileCard from '../components/ProfileCard.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../data/site';
+
+const pages = await getCollection('pages');
+const about = pages.find((page) => page.id === 'about');
+if (!about) throw new Error('Missing about page content.');
+
+const { Content } = await render(about);
+---
+
+<BaseLayout title={site.name} description={site.description}>
+  <Fragment slot="aside">
+    <ProfileCard />
+  </Fragment>
+
+  <PageHeader title={about.data.title} />
+
+  <div class="prose">
+    <Content />
+  </div>
+</BaseLayout>

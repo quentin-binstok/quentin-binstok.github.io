@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<BaseLayout title="Not found" description="This page does not exist.">
+  <PageHeader title="Nothing here">
+    <p class="mt-4 max-w-xl text-sm leading-relaxed text-ink-soft">
+      The address you followed does not match anything on this site. It may have moved, or it may never have
+      existed.
+    </p>
+  </PageHeader>
+
+  <div class="mt-8 flex flex-wrap gap-3">
+    <a href="/" class="metal-button px-4 py-2.5">
+      <Icon name="arrow-left" class="size-3.5" />
+      Back to index
+    </a>
+    <a href="/portfolio/" class="metal-button px-4 py-2.5">Portfolio</a>
+    <a href="/contributions/" class="metal-button px-4 py-2.5">Contributions</a>
+  </div>
+</BaseLayout>

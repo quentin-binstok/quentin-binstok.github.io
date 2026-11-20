@@ -1,0 +1,158 @@
+---
+import '../styles/global.css';
+import SideNav from '../components/SideNav.astro';
+import NavLinks from '../components/NavLinks.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = site.description } = Astro.props;
+const pathname = Astro.url.pathname;
+const hasAside = Astro.slots.has('aside');
+const pageTitle = title === site.name ? title : `${title} — ${site.name}`;
+const canonical = new URL(pathname, site.url);
+const ogImage = new URL(site.avatar, site.url);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <meta name="theme-color" content="#f2f2ef" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c0d0f" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary" />
+    <script is:inline>
+      (() => {
+        try {
+          const stored = localStorage.getItem('theme');
+          const dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', dark);
+        } catch {
+          /* no-op */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:border focus:border-line-strong focus:bg-elevated focus:px-3 focus:py-2 focus:font-mono focus:text-xs focus:uppercase focus:tracking-widest"
+    >
+      Skip to content
+    </a>
+
+    <header class="sticky top-0 z-50 border-b border-line bg-canvas/90 backdrop-blur-md lg:hidden">
+      <div class="flex h-14 items-center justify-between px-5">
+        <a href="/" class="flex items-center gap-3">
+          <span class="font-mono text-[0.7rem] uppercase tracking-[0.14em]">{site.name}</span>
+        </a>
+        <div class="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            type="button"
+            class="metal-button size-9"
+            data-menu-toggle
+            aria-controls="mobile-menu"
+            aria-expanded="false"
+            aria-label="Open navigation menu"
+          >
+            <Icon name="menu" class="size-4" data-icon-open />
+            <Icon name="close" class="hidden size-4" data-icon-close />
+          </button>
+        </div>
+      </div>
+
+      <div id="mobile-menu" hidden data-menu-panel class="border-t border-line bg-elevated px-5 py-5">
+        <NavLinks pathname={pathname} />
+        <div class="mt-5 flex items-center gap-2 border-t border-line pt-4">
+          <a href={site.cv} target="_blank" rel="noreferrer" class="metal-button px-3 py-2">
+            <Icon name="file" class="size-3.5" />
+            Curriculum vitae
+          </a>
+          <span class="ml-auto flex items-center gap-2 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-ink-faint">
+            <Icon name="location" class="size-3.5" />
+            {site.location}
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <div class:list={['shell flex flex-col lg:grid', hasAside && 'shell--with-aside']}>
+      <SideNav pathname={pathname} />
+      <div class="metal-rule hidden lg:sticky lg:top-[19vh] lg:block" aria-hidden="true"></div>
+
+      <main id="main" class="min-w-0 py-10 lg:flex lg:min-h-screen lg:flex-col lg:justify-center lg:pb-40 lg:pt-24">
+        <slot />
+      </main>
+
+      {
+        hasAside && (
+          <aside
+            class="order-first mb-10 pt-8 lg:sticky lg:top-0 lg:order-none lg:mb-0 lg:flex lg:h-screen lg:flex-col lg:overflow-y-auto lg:pt-0"
+            aria-label="Profile"
+          >
+            <div class="lg:my-auto lg:pb-12">
+              <slot name="aside" />
+            </div>
+          </aside>
+        )
+      }
+    </div>
+
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const dark = !root.classList.contains('dark');
+            root.classList.toggle('dark', dark);
+            try {
+              localStorage.setItem('theme', dark ? 'dark' : 'light');
+            } catch {
+              /* no-op */
+            }
+          });
+        });
+
+        const menuButton = document.querySelector('[data-menu-toggle]');
+        const menuPanel = document.querySelector('[data-menu-panel]');
+        if (menuButton && menuPanel) {
+          const openIcon = menuButton.querySelector('[data-icon-open]');
+          const closeIcon = menuButton.querySelector('[data-icon-close]');
+
+          const setMenu = (open) => {
+            menuPanel.hidden = !open;
+            menuButton.setAttribute('aria-expanded', String(open));
+            menuButton.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+            openIcon?.classList.toggle('hidden', open);
+            closeIcon?.classList.toggle('hidden', !open);
+          };
+
+          menuButton.addEventListener('click', () => setMenu(menuPanel.hidden));
+          menuPanel.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') setMenu(false);
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

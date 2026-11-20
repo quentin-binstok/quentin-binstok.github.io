@@ -1,0 +1,20 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  divider?: boolean;
+}
+
+const { eyebrow, title, description, divider = true } = Astro.props;
+---
+
+<header class:list={['mb-8 pb-7', divider ? 'border-b border-line' : '']}>
+  {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
+  <div class="flex flex-wrap items-baseline justify-between gap-3">
+    <h1 class="text-3xl font-medium tracking-tight text-ink sm:text-4xl">{title}</h1>
+    <slot name="aside" />
+  </div>
+  {description && <p class="mt-4 max-w-2xl text-sm leading-relaxed text-ink-soft">{description}</p>}
+  <slot />
+</header>
