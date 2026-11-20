@@ -1,0 +1,102 @@
+---
+import { getCollection, render } from 'astro:content';
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import Icon from '../../components/Icon.astro';
+import { formatLongDate } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('contributions', ({ data }) => !data.draft);
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { data } = entry;
+const { Content } = await render(entry);
+
+const links = [
+  data.paperurl && { label: 'Paper', href: data.paperurl },
+  data.slidesurl && { label: 'Slides', href: data.slidesurl },
+  data.bibtexurl && { label: 'BibTeX', href: data.bibtexurl },
+  data.doi && {
+    label: 'DOI',
+    href: data.doi.startsWith('http') ? data.doi : `https://doi.org/${data.doi}`,
+  },
+  ...(data.links ?? []).map((link) => ({ label: link.label, href: link.url })),
+].filter((link): link is { label: string; href: string } => Boolean(link));
+---
+
+<ContentLayout
+  title={data.title}
+  description={data.excerpt}
+  backHref="/contributions/"
+  backLabel="Contributions"
+>
+  <Fragment slot="meta">
+    <dl class="mt-6 grid gap-x-6 gap-y-2 border-t border-line pt-4 font-mono text-[0.66rem] uppercase tracking-[0.1em] sm:grid-cols-2">
+      {
+        data.date && (
+          <div class="flex gap-2">
+            <dt class="text-ink-faint">Date</dt>
+            <dd class="text-ink-soft">{formatLongDate(data.date)}</dd>
+          </div>
+        )
+      }
+      {
+        data.type && (
+          <div class="flex gap-2">
+            <dt class="text-ink-faint">Type</dt>
+            <dd class="text-ink-soft">{data.type}</dd>
+          </div>
+        )
+      }
+      {
+        data.venue && (
+          <div class="flex gap-2 sm:col-span-2">
+            <dt class="shrink-0 text-ink-faint">Venue</dt>
+            <dd class="text-ink-soft normal-case tracking-normal">{data.venue}</dd>
+          </div>
+        )
+      }
+      {
+        data.location && (
+          <div class="flex gap-2 sm:col-span-2">
+            <dt class="shrink-0 text-ink-faint">Location</dt>
+            <dd class="text-ink-soft normal-case tracking-normal">{data.location}</dd>
+          </div>
+        )
+      }
+    </dl>
+
+    {
+      links.length > 0 && (
+        <div class="mt-4 flex flex-wrap gap-2">
+          {links.map((link) => (
+            <a
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              class="metal-button px-3 py-2"
+            >
+              {link.label}
+              <Icon name="arrow-up-right" class="size-3" />
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </Fragment>
+
+  <Content />
+
+  {
+    data.citation && (
+      <footer class="mt-10 border-t border-line pt-4">
+        <p class="eyebrow mb-2">Cite as</p>
+        <p class="font-mono text-[0.72rem] leading-relaxed text-ink-faint" set:html={data.citation} />
+      </footer>
+    )
+  }
+</ContentLayout>

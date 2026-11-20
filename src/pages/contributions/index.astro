@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Icon from '../../components/Icon.astro';
+import { categoryLabel, formatDate, sortCategories } from '../../lib/content';
+
+const entries = (await getCollection('contributions', ({ data }) => !data.draft)).sort(
+  (a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0)
+);
+
+const categories = sortCategories([...new Set(entries.map((entry) => entry.data.category))]);
+const groups = categories.map((category) => ({
+  category,
+  label: categoryLabel(category),
+  entries: entries.filter((entry) => entry.data.category === category),
+}));
+---
+
+<BaseLayout
+  title="Scientific contributions"
+  description="Publications, conference papers, talks and other scientific contributions."
+>
+  <PageHeader
+    title="Scientific contributions"
+    description="Papers, conference contributions and talks. Each entry links to a short page with the details and the material."
+    divider={false}
+  />
+
+  {
+    categories.length > 1 && (
+      <nav aria-label="Contribution categories" class="mb-10 flex flex-wrap gap-2">
+        {groups.map((group) => (
+          <a href={`#${group.category}`} class="tag transition-colors hover:border-line-strong hover:text-ink">
+            {group.label}
+            <span class="ml-1.5 text-line-strong">{String(group.entries.length).padStart(2, '0')}</span>
+          </a>
+        ))}
+      </nav>
+    )
+  }
+
+  <div class="space-y-12">
+    {
+      groups.map((group) => (
+        <section id={group.category} class="scroll-mt-24">
+          <div class="mb-3 flex items-baseline justify-between gap-3 border-b border-line pb-2">
+            <h2 class="eyebrow text-ink-soft">{group.label}</h2>
+            <span class="font-mono text-[0.62rem] text-ink-faint">
+              {String(group.entries.length).padStart(2, '0')}
+            </span>
+          </div>
+
+          <ol class="divide-y divide-line">
+            {group.entries.map((entry) => (
+              <li>
+                <a href={`/contributions/${entry.id}/`} class="group grid gap-2 py-5 sm:grid-cols-[6rem_minmax(0,1fr)]">
+                  <span class="pt-0.5 font-mono text-[0.64rem] uppercase tracking-[0.1em] text-ink-faint">
+                    {formatDate(entry.data.date) || '—'}
+                  </span>
+                  <div class="min-w-0">
+                    <div class="flex items-baseline justify-between gap-3">
+                      <h3 class="text-[0.98rem] font-medium leading-snug text-ink transition-colors group-hover:text-accent-strong">
+                        {entry.data.title}
+                      </h3>
+                      <Icon
+                        name="chevron-right"
+                        class="mt-1 size-3 shrink-0 text-line-strong transition-transform group-hover:translate-x-0.5"
+                      />
+                    </div>
+                    {(entry.data.venue || entry.data.type) && (
+                      <p class="mt-1 text-[0.8rem] text-ink-soft">
+                        {[entry.data.venue, entry.data.location].filter(Boolean).join(' · ')}
+                        {entry.data.type && (
+                          <span class="ml-2 font-mono text-[0.62rem] uppercase tracking-[0.1em] text-ink-faint">
+                            {entry.data.type}
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>

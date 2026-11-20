@@ -1,0 +1,55 @@
+---
+import Icon from './Icon.astro';
+import { links, site } from '../data/site';
+---
+
+<article>
+  <div class="flex items-start gap-4 lg:block">
+    <div class="relative mx-auto w-fit shrink-0 lg:mb-7">
+      <div class="absolute inset-0 -m-1 border border-line" aria-hidden="true"></div>
+      <img
+        src={site.avatar}
+        alt={`Portrait of ${site.name}`}
+        width="160"
+        height="160"
+        class="relative size-20 border border-line-strong object-cover lg:size-56"
+        fetchpriority="high"
+      />
+    </div>
+    <div class="min-w-0 lg:mt-1">
+      <h2 class="font-mono text-[0.83rem] uppercase tracking-[0.16em] text-ink">{site.name}</h2>
+      <p class="mt-1 font-mono text-[0.64rem] uppercase tracking-[0.14em] text-ink-faint">{site.pronouns}</p>
+      <p class="mt-3 text-[0.82rem] leading-relaxed text-ink-soft">{site.bio}</p>
+    </div>
+  </div>
+
+  <div class="mt-5 space-y-2 border-t border-line pt-4 font-mono text-[0.64rem] uppercase tracking-[0.1em] text-ink-faint">
+    <p class="flex items-center gap-2">
+      <Icon name="location" class="size-3.5 shrink-0" />
+      {site.location}
+    </p>
+    <p class="flex items-center gap-2">
+      <Icon name="building" class="size-3.5 shrink-0" />
+      {site.employer}
+    </p>
+  </div>
+
+  <ul class="mt-4 grid gap-1.5 border-t border-line pt-4 sm:grid-cols-2 lg:grid-cols-1">
+    {
+      links.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            class="group flex items-center gap-2.5 py-1 font-mono text-[0.68rem] uppercase tracking-[0.08em] text-ink-soft transition-colors hover:text-ink"
+            target={link.external ? '_blank' : undefined}
+            rel={link.external ? 'noreferrer' : undefined}
+          >
+            <Icon name={link.icon} class="size-4 shrink-0 text-ink-faint transition-colors group-hover:text-accent" />
+            <span>{link.label}</span>
+            {link.external && <Icon name="arrow-up-right" class="ml-auto size-3 text-line-strong" />}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</article>

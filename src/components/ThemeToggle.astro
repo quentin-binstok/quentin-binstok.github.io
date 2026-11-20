@@ -1,0 +1,20 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<button
+  type="button"
+  class:list={['metal-button size-9', className]}
+  data-theme-toggle
+  aria-label="Toggle color theme"
+  title="Toggle color theme"
+>
+  <Icon name="sun" class="size-4 dark:hidden" />
+  <Icon name="moon" class="hidden size-4 dark:block" />
+</button>
